@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">SmartPay</string>
+
+    <string name="logout">Odjava</string>
+
+    <string name="add_plate">Dodaj tablicu</string>
+    <string name="add">Dodaj</string>
+    <string name="close">Odustani</string>
+    <string name="plate_example_hint">npr. RI123GT</string>
+
+    <string name="all_data_updated">Podaci ažurirani</string>
+    <string name="table_saved">Tablica spremljena</string>
+    <string name="table_deleted">Tablica izbrisana</string>
+</resources>
