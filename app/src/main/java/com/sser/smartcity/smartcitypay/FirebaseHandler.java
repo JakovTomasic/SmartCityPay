@@ -100,16 +100,10 @@ class FirebaseHandler {
                 AppData.firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
 
-                // Open home activity
-                Intent intent = new Intent(activity, HomeActivity.class);
-                activity.startActivity(intent);
-
-
                 // Handle user login
                 loginUser();
 
             } else {
-                // TODO: handle this (maybe)
                 // Sign in failed. If response is null the user canceled the
                 // sign-in flow using the back button. Otherwise check
                 // response.getError().getErrorCode() and handle the error.

@@ -1,6 +1,9 @@
 package com.sser.smartcity.smartcitypay;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -31,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
                 FirebaseHandler.authenticateUser(MainActivity.this);
             }
         });
+
     }
 
     @Override
@@ -39,6 +43,18 @@ public class MainActivity extends AppCompatActivity {
 
         // Save this activity as the current one for accessing it later (from static context)
         AppData.currentActivity = this;
+
+
+        // Checks for internet connection and sets warning TextView accordingly
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        final boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        // Set error layout visibility
+        View noInternetConnectionView = findViewById(R.id.no_internet_connection_TV);
+        noInternetConnectionView.setVisibility(isConnected ? View.GONE : View.VISIBLE);
+
+
 
         // Try to login user
         if(AppData.firebaseAuth.getCurrentUser() != null) {
@@ -51,9 +67,9 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(this, HomeActivity.class);
             startActivity(intent);
         } else {
-            // TODO: this is reopening
             // User is not logged in - open login activity
             FirebaseHandler.authenticateUser(this);
+            // When activity gives result it will call this onResume again and run the code above (HomeActivity will be opened)
         }
 
     }

@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">SmartPay</string>
 
+    <string name="login">Prijava</string>
     <string name="logout">Odjava</string>
 
     <string name="add_plate">Dodaj tablicu</string>

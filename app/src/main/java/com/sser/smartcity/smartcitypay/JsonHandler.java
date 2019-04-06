@@ -222,7 +222,6 @@ class JsonHandler {
 
 
 
-    // TODO: this must be checked constantly (create another class for that)
     // Saves data from JSON (loop through all thingspeak data and get current user's balance)
     static void getUserBalance() throws Exception {
 
