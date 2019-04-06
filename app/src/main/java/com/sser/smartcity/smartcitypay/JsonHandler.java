@@ -16,11 +16,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.Charset;
 
+// Handles JSON actions
 class JsonHandler {
 
     private static final String LOG_TAG = JsonHandler.class.getName();
 
-    // add query parameters in string request
+    // Add query parameters in string request (for adding and removing user plate)
     private static String makeNewPlateDataUrl(String request, String userId, String plate, boolean addPlate) {
 
         Uri baseUri = Uri.parse(request);
@@ -29,6 +30,18 @@ class JsonHandler {
         uriBuilder.appendQueryParameter("field1", userId);
         uriBuilder.appendQueryParameter("field2", plate);
         uriBuilder.appendQueryParameter("field3", addPlate ? "1" : "0");
+
+        return uriBuilder.toString();
+    }
+
+    // Add query parameters in string request (for adding new user balance (and overriding old one if it exists))
+    private static String makeNewUserBalanceUrl(String request, String userId, float balance) {
+
+        Uri baseUri = Uri.parse(request);
+        Uri.Builder uriBuilder = baseUri.buildUpon();
+
+        uriBuilder.appendQueryParameter("field1", userId);
+        uriBuilder.appendQueryParameter("field2", String.valueOf(balance));
 
         return uriBuilder.toString();
     }
@@ -89,7 +102,7 @@ class JsonHandler {
     }
 
 
-    // Saves data from JSON
+    // Saves data from JSON (loop through all thingspeak data and save all plates for current user)
     static void getAllUserPlates() throws Exception {
 
         String jsonResponse = null;
@@ -125,18 +138,33 @@ class JsonHandler {
 
             JSONArray feeds = jsonObject.getJSONArray("feeds");
 
-            String userEmail = "";
+            String userId = "";
             String userPlate = "";
 
+            // Loop through all data and save all current user's data (if valid)
             for(int i = 0; i < feeds.length(); i++) {
                 JSONObject obj2 = feeds.getJSONObject(i);
 
-                userEmail = obj2.getString("field1");
+                userId = obj2.getString("field1");
 
-                if(userEmail != null && userEmail.equals(AppData.firebaseUser.getUid()) && obj2.getString("field3").equals("1")) {
+                // If user Id is saved as the current user's Id handle adding data change
+                if(userId != null && userId.equals(AppData.firebaseUser.getUid())) {
                     userPlate = obj2.getString("field2");
+                    // If user plate if valid, add/remove it
                     if(userPlate != null && !userPlate.isEmpty()) {
-                        AppData.userPlates.add(new Plate(userPlate));
+
+                        if(obj2.getString("field3").equals("1")) {
+                            // Add plate
+                            AppData.userPlates.add(new Plate(userPlate));
+                        } else {
+                            // Remove all same plates (that has been saved so far)
+                            for(int j = 0; j < AppData.userPlates.size(); j++) {
+                                if(AppData.userPlates.get(j).getPlate().equals(userPlate)) {
+                                    AppData.userPlates.remove(j--);
+                                }
+                            }
+                        }
+
                     }
                 }
 
@@ -152,22 +180,126 @@ class JsonHandler {
     }
 
 
-    // Saves data from JSON
-    static void addUserPlate(String plateText) throws Exception {
-
-        String jsonResponse = "-1";
+    // Writes new plate to the thingspeak channel
+    static void setNewPlateData(String plateText, boolean addPlate) throws Exception {
 
         // Create URL object
         URL url = null;
 
         try {
             url = new URL(makeNewPlateDataUrl("https://api.thingspeak.com/update?api_key=JY4A7T52CUAJ0BDW",
-                    AppData.firebaseUser.getUid(), plateText, true));
+                    AppData.firebaseUser.getUid(), plateText, addPlate));
         }
         catch (MalformedURLException e) {
             Log.e(LOG_TAG, "Problem building the URL ", e);
         }
 
+        // Send data to the channel
+        startSendingDataUntilSuccess(url);
+
+    }
+
+
+
+    // TODO: this must be checked constantly (create another class for that)
+    // Saves data from JSON (loop through all thingspeak data and get current user's balance)
+    static void getUserBalance() throws Exception {
+
+        String jsonResponse = null;
+
+        // Create URL object
+        URL url = null;
+
+        try {
+            url = new URL("https://api.thingspeak.com/channels/751934/feeds.json?api_key=W0XQM80G1VYHRZ3T");
+        }
+        catch (MalformedURLException e) {
+            Log.e(LOG_TAG, "Problem building the URL ", e);
+        }
+
+        // Perform HTTP request to the URL and receive a JSON response back
+        try {
+            jsonResponse = JsonHandler.makeHttpRequest(url);
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Problem making the HTTP request.", e);
+        }
+
+        // If the JSON string is empty or null, then return early.
+        if (TextUtils.isEmpty(jsonResponse)) {
+            return;
+        }
+
+        // Try to parse the SAMPLE_JSON_RESPONSE. If there's a problem with the way the JSON
+        // is formatted, a JSONException exception object will be thrown.
+        // Catch the exception so the app doesn't crash, and print the error message to the logs.
+        try {
+
+            JSONObject jsonObject = new JSONObject(jsonResponse);
+
+            JSONArray feeds = jsonObject.getJSONArray("feeds");
+
+            String userId = "";
+            Float userBalance = null;
+
+            // Loop through all data and save most recent one (that belongs to current user)
+            for(int i = 0; i < feeds.length(); i++) {
+                JSONObject obj2 = feeds.getJSONObject(i);
+
+                userId = obj2.getString("field1");
+
+                // If user Id is saved as the current user's Id update balance
+                if(userId != null && userId.equals(AppData.firebaseUser.getUid())) {
+                    try {
+                        userBalance = Float.parseFloat(obj2.getString("field2"));
+                    } catch (Exception ignored) {}
+                }
+
+            }
+
+            if(userBalance == null) {
+                // If there is no balance data from current user, set balance to current balance (probably 0)
+                setUserBalance(AppData.userBalance);
+            } else {
+                // If current user's balance is found, save it
+                AppData.userBalance = userBalance;
+            }
+
+        } catch (Exception e) {
+            // If an error is thrown when executing any of the above statements in the "try" block,
+            // catch the exception here, so the app doesn't crash. Print a log message
+            // with the message from the exception.
+            Log.e(LOG_TAG, "Problem parsing JSON results", e);
+        }
+
+    }
+
+
+    // Writes new user balance to the thingspeak channel
+    static void setUserBalance(float balance) throws Exception {
+
+        // Create URL object
+        URL url = null;
+
+        try {
+            url = new URL(makeNewUserBalanceUrl("https://api.thingspeak.com/update?api_key=7USWNBPGRUNM2HIT",
+                    AppData.firebaseUser.getUid(), balance));
+        }
+        catch (MalformedURLException e) {
+            Log.e(LOG_TAG, "Problem building the URL ", e);
+        }
+
+        // Send data to the channel
+        startSendingDataUntilSuccess(url);
+
+
+    }
+
+    // Loops and tries to send data until it is successfully sent
+    private static void startSendingDataUntilSuccess(URL url) {
+        // Initial response is error response (if response haven't been got - loop until we get it)
+        String jsonResponse = "-1";
+
+        // Don't wait only first time
         boolean firstTime = true;
 
         while(Integer.parseInt(jsonResponse) <= 0) {
@@ -175,13 +307,14 @@ class JsonHandler {
             // Perform HTTP request to the URL and receive a JSON response back
             try {
                 jsonResponse = JsonHandler.makeHttpRequest(url);
+
+                // If there is an error sleep between loop steps (but not first time - in case everything is OK)
                 if(!firstTime) Thread.sleep(1000);
                 firstTime = false;
-            } catch (IOException e) {
+            } catch (Exception e) {
                 Log.e(LOG_TAG, "Problem making the HTTP request.", e);
             }
         }
-
     }
 
 

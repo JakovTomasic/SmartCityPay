@@ -16,7 +16,7 @@ import android.widget.Toast;
 // First activity after user logs in
 public class HomeActivity extends AppCompatActivity {
 
-    // TODO: add remove plate button
+    // TODO: add refresh button
 
     // Stores current plateAdapter for updating it from static methods (changing it's data)
     private static PlateAdapter plateAdapter = null;
@@ -49,6 +49,9 @@ public class HomeActivity extends AppCompatActivity {
 
         // Save this activity as the current one for accessing it later (from static context)
         AppData.currentActivity = this;
+
+        // Show current user balance
+        updateBalanceLayout();
     }
 
     // Set options menu
@@ -75,6 +78,16 @@ public class HomeActivity extends AppCompatActivity {
     static void updatePlatesList() {
         try {
             ((BaseAdapter) plateAdapter).notifyDataSetChanged();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Update balance text view to show current user account balance
+    void updateBalanceLayout() {
+        try {
+            TextView userBalanceTV = findViewById(R.id.user_balance_text_view);
+            userBalanceTV.setText(String.valueOf(AppData.userBalance));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -110,7 +123,7 @@ public class HomeActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             try {
-                                JsonHandler.addUserPlate(newPlate);
+                                JsonHandler.setNewPlateData(newPlate, true);
 
                                 AppData.currentActivity.runOnUiThread(new Runnable() {
                                     @Override

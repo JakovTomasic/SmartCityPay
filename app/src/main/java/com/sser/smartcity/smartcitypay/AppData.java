@@ -23,5 +23,8 @@ class AppData {
     // List of all user's plates
     static ArrayList<Plate> userPlates = new ArrayList<>();
 
+    // User's current account balance (money) in kuna
+    static float userBalance = 0;
+
 
 }

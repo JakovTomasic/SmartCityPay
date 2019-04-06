@@ -31,6 +31,9 @@ class FirebaseHandler {
 
     // Handle user login (get all user data)
     static void loginUser() {
+        // Set balance to be 0 (initially)
+        AppData.userBalance = 0;
+        // Delete all previous plates
         AppData.userPlates.clear();
         HomeActivity.updatePlatesList();
 
@@ -38,13 +41,19 @@ class FirebaseHandler {
             @Override
             public void run() {
                 try {
+                    // Get all data
                     JsonHandler.getAllUserPlates();
+                    JsonHandler.getUserBalance();
 
-                    HomeActivity.updatePlatesList();
-
+                    // After we got new data, refresh layout
                     AppData.currentActivity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                            try {
+                                HomeActivity.updatePlatesList();
+                                ((HomeActivity) AppData.currentActivity).updateBalanceLayout();
+                            } catch (Exception ignored) {}
+
                             Toast.makeText(AppData.currentActivity, R.string.all_data_updated, Toast.LENGTH_SHORT).show();
                         }
                     });
@@ -59,6 +68,7 @@ class FirebaseHandler {
 
     // Handle user logout
     static void logoutUser() {
+        AppData.userBalance = 0;
         try {
             AppData.firebaseAuth.signOut();
         } catch (Exception e) {
