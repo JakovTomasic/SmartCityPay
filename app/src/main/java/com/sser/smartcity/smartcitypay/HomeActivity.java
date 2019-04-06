@@ -52,6 +52,7 @@ public class HomeActivity extends AppCompatActivity {
             @Override
             public void onRefresh() {
                 refreshWholeLayout();
+                changeRefreshAnimationState(true);
             }
         });
 
@@ -195,13 +196,18 @@ public class HomeActivity extends AppCompatActivity {
 
     // Sets visibility of refresh/loading animation
     void changeRefreshAnimationState(boolean refresh) {
-        if(!refresh && swipeRefreshParentLayout.isRefreshing() && JsonHandler.waitLoopCount <= 0) {
-            // If it is currently visible and nothing is downloading/getting form the internet, hide it
-            swipeRefreshParentLayout.setRefreshing(false);
-        } else if(refresh && !swipeRefreshParentLayout.isRefreshing()) {
-            // If it is not displayed, enable it in case it's disabled and show it
-            swipeRefreshParentLayout.setEnabled(true);
-            swipeRefreshParentLayout.setRefreshing(true);
+        // Hide loading animation of SwipeRefreshLayout (I don't have the full control over it, so it it going down :) )
+        swipeRefreshParentLayout.setRefreshing(false);
+
+        // Get progress bar layout
+        View loadingProgressBar = findViewById(R.id.loading_progress_bar);
+
+        if(!refresh && JsonHandler.waitLoopCount <= 0) {
+            // If nothing is downloading/getting form the internet, hide it
+            loadingProgressBar.setVisibility(View.GONE);
+        } else {
+            // Otherwise, show it
+            loadingProgressBar.setVisibility(View.VISIBLE);
         }
     }
 

@@ -30,13 +30,11 @@
             android:layout_marginRight="@dimen/text_separation_margin"
             android:layout_weight="1"
             android:textColor="@color/textColor"
+            android:textSize="32sp"
             tools:text="RI177PO"/>
 
 
-
-
     </LinearLayout>
-
 
 
 </RelativeLayout>

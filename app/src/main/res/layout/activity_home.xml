@@ -19,7 +19,19 @@
         android:gravity="center"
         android:padding="2dp"
         android:elevation="4dp"
-        android:visibility="gone"
+        android:visibility="visible"
+        tools:ignore="UnusedAttribute" />
+
+    <ProgressBar
+        android:id="@+id/loading_progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/no_internet_connection_TV"
+        android:padding="2dp"
+        android:elevation="4dp"
+        android:indeterminate="true"
+        android:visibility="visible"
         tools:ignore="UnusedAttribute" />
 
 
