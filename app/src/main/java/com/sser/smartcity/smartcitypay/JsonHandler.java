@@ -346,7 +346,7 @@ class JsonHandler {
 
                 // If there is an error, sleep between loop steps (but not first time - in case everything is OK)
                 if(!firstTime) {
-                    // Try to show a loading animation (it is already showing - in case it closes) TODO: this doesn't work perfectly
+                    // Try to show a loading animation (it is already showing - in case it closes)
                     ((HomeActivity) AppData.currentActivity).changeRefreshAnimationState(true);
                     Thread.sleep(100);
                 }
