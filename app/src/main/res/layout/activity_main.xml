@@ -6,7 +6,7 @@
     android:background="@color/backgroundColor"
     tools:context=".MainActivity">
 
-    <!--TODO: add please wait message, no internet message and login manually message-->
+    <!--TODO: add please wait message, no internet message and login manually option-->
 
     <TextView
         android:layout_width="wrap_content"

@@ -11,16 +11,6 @@
         android:orientation="horizontal"
         android:minHeight="?listPreferredItemHeight">
 
-        <TextView
-            android:id="@+id/plate_text_view"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:layout_marginLeft="@dimen/text_separation_margin"
-            android:layout_weight="1"
-            android:textColor="@color/textColor"
-            tools:text="RI177PO"/>
-
         <ImageView
             android:id="@+id/delete_plate_clickable_image_view"
             android:layout_width="wrap_content"
@@ -31,6 +21,18 @@
             android:background="?selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"/>
+
+        <TextView
+            android:id="@+id/plate_text_view"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginRight="@dimen/text_separation_margin"
+            android:layout_weight="1"
+            android:textColor="@color/textColor"
+            tools:text="RI177PO"/>
+
+
 
 
     </LinearLayout>

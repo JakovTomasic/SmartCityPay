@@ -11,4 +11,11 @@
     <string name="all_data_updated">Podaci ažurirani</string>
     <string name="table_saved">Tablica spremljena</string>
     <string name="table_deleted">Tablica izbrisana</string>
+
+    <string name="currency_mark">kn</string>
+    <string name="add_to_the_account">Uplati</string>
+    <string name="payment_successful">Uplata uspješna</string>
+    <string name="payment_unsuccessful">Uplata nije izvršena</string>
+    <string name="payment_example_hint">npr. 10.75</string>
+
 </resources>

@@ -37,6 +37,12 @@ class FirebaseHandler {
         AppData.userPlates.clear();
         HomeActivity.updatePlatesList();
 
+
+        try {
+            // Try to show loading animation
+            ((HomeActivity) AppData.currentActivity).changeRefreshAnimationState(true);
+        } catch (Exception ignored) {}
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -52,9 +58,10 @@ class FirebaseHandler {
                             try {
                                 HomeActivity.updatePlatesList();
                                 ((HomeActivity) AppData.currentActivity).updateBalanceLayout();
+                                // Close loading animation
+                                ((HomeActivity) AppData.currentActivity).changeRefreshAnimationState(false);
                             } catch (Exception ignored) {}
 
-                            Toast.makeText(AppData.currentActivity, R.string.all_data_updated, Toast.LENGTH_SHORT).show();
                         }
                     });
 

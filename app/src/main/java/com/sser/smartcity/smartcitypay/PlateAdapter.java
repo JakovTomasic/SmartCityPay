@@ -35,28 +35,35 @@ public class PlateAdapter extends ArrayAdapter<Plate> {
         plateTV.setText(AppData.userPlates.get(position).getPlate());
 
         // Set listener for deleting plate
-        View deletePlateView = currentListView.findViewById(R.id.delete_plate_clickable_image_view);
+        final View deletePlateView = currentListView.findViewById(R.id.delete_plate_clickable_image_view);
         deletePlateView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // Show loading animation
+                ((HomeActivity) AppData.currentActivity).changeRefreshAnimationState(true);
 
-                // Add plate deletion to the cloud and show "Done" Toast afterwards
+                // As this view will be erased, clear it's on click listener (so user can't remove one table twice)
+                deletePlateView.setOnClickListener(null);
+
+                // Write plate deletion to the cloud and show "Done" Toast afterwards
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            // TODO: this can last very long time, show progress bar on click
                             JsonHandler.setNewPlateData(AppData.userPlates.get(position).getPlate(), false);
 
                             AppData.currentActivity.runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
+                                    // Show what plate has been removed
+                                    Toast.makeText(AppData.currentActivity, getContext().getResources().getString(R.string.table_deleted) +
+                                            ": " + AppData.userPlates.get(position).getPlate(), Toast.LENGTH_SHORT).show();
+
                                     try {
                                         AppData.userPlates.remove(position);
                                         HomeActivity.updatePlatesList();
+                                        ((HomeActivity) AppData.currentActivity).changeRefreshAnimationState(false);
                                     } catch (Exception ignored) {}
-
-                                    Toast.makeText(AppData.currentActivity, R.string.table_deleted, Toast.LENGTH_SHORT).show();
                                 }
                             });
                         } catch (Exception e) {

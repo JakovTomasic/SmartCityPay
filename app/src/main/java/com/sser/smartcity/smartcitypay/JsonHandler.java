@@ -21,6 +21,9 @@ class JsonHandler {
 
     private static final String LOG_TAG = JsonHandler.class.getName();
 
+    // Number of while(true) loops running and waiting for thingspeak to pass 15 sec limit
+    static int waitLoopCount = 0;
+
     // Add query parameters in string request (for adding and removing user plate)
     private static String makeNewPlateDataUrl(String request, String userId, String plate, boolean addPlate) {
 
@@ -150,19 +153,37 @@ class JsonHandler {
                 // If user Id is saved as the current user's Id handle adding data change
                 if(userId != null && userId.equals(AppData.firebaseUser.getUid())) {
                     userPlate = obj2.getString("field2");
+
                     // If user plate if valid, add/remove it
                     if(userPlate != null && !userPlate.isEmpty()) {
 
+                        // Should this plate be added to the list
+                        boolean addPlate = false;
+
                         if(obj2.getString("field3").equals("1")) {
-                            // Add plate
-                            AppData.userPlates.add(new Plate(userPlate));
-                        } else {
-                            // Remove all same plates (that has been saved so far)
-                            for(int j = 0; j < AppData.userPlates.size(); j++) {
-                                if(AppData.userPlates.get(j).getPlate().equals(userPlate)) {
+                            // If plate should be added, that is default value
+                            addPlate = true;
+                        }
+
+                        // Loop through all existing plates
+                        for(int j = 0; j < AppData.userPlates.size(); j++) {
+                            if(AppData.userPlates.get(j).getPlate().equals(userPlate)) {
+                                // New plate already exist in the list
+
+                                if(obj2.getString("field3").equals("1")) {
+                                    // Plate shouldn't be added (as it is already saved)
+                                    addPlate = false;
+                                    break;
+                                } else {
+                                    // Remove all same plates as the current one (that have been saved so far)
                                     AppData.userPlates.remove(j--);
                                 }
                             }
+                        }
+
+                        // Add plate to the list if it should be added
+                        if(addPlate) {
+                            AppData.userPlates.add(new Plate(userPlate));
                         }
 
                     }
@@ -256,12 +277,24 @@ class JsonHandler {
 
             }
 
-            if(userBalance == null) {
-                // If there is no balance data from current user, set balance to current balance (probably 0)
-                setUserBalance(AppData.userBalance);
-            } else {
-                // If current user's balance is found, save it
-                AppData.userBalance = userBalance;
+            // For checking if userId is valid or user is logged out
+            int userIdStringLenght = 0;
+            try {
+                userIdStringLenght = AppData.firebaseAuth.getCurrentUser().getUid().length();
+            } catch (NullPointerException ignored) {}
+
+            // Set this to the default (in case userId is not valid)
+            AppData.userBalance = 0;
+
+            // If user id is valid / user is logged in - save balance
+            if(userIdStringLenght > 5) {
+                if(userBalance == null) {
+                    // If there is no balance data from current user, set balance to current balance (always 0)
+                    setUserBalance(AppData.userBalance);
+                } else {
+                    // If current user's balance is found, save it
+                    AppData.userBalance = userBalance;
+                }
             }
 
         } catch (Exception e) {
@@ -296,10 +329,14 @@ class JsonHandler {
 
     // Loops and tries to send data until it is successfully sent
     private static void startSendingDataUntilSuccess(URL url) {
-        // Initial response is error response (if response haven't been got - loop until we get it)
+
+        // It will start to loop, so increase counter
+        waitLoopCount++;
+
+        // Initial response is error response (if we didn't got the response- loop until we get it)
         String jsonResponse = "-1";
 
-        // Don't wait only first time
+        // Don't wait and show show loading animation first time
         boolean firstTime = true;
 
         while(Integer.parseInt(jsonResponse) <= 0) {
@@ -308,13 +345,20 @@ class JsonHandler {
             try {
                 jsonResponse = JsonHandler.makeHttpRequest(url);
 
-                // If there is an error sleep between loop steps (but not first time - in case everything is OK)
-                if(!firstTime) Thread.sleep(1000);
+                // If there is an error, sleep between loop steps (but not first time - in case everything is OK)
+                if(!firstTime) {
+                    // Try to show a loading animation (it is already showing - in case it closes) TODO: this doesn't work perfectly
+                    ((HomeActivity) AppData.currentActivity).changeRefreshAnimationState(true);
+                    Thread.sleep(100);
+                }
                 firstTime = false;
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Problem making the HTTP request.", e);
             }
         }
+
+        // Everything is done, decrease counter back
+        waitLoopCount--;
     }
 
 

@@ -7,11 +7,14 @@
 
     <color name="textColor">#002060</color>
 
+    <color name="paymentCustomButtonDarkColor">#214c9e</color>
+    <color name="paymentCustomButtonLightColor">#436ebf</color>
 
-    <!--TODO: these down are not used yet-->
+    <color name="navigationBarColor">#214c9e</color>
 
+    <color name="loadingColor">#2974ff</color>
+
+    <!--TODO: this is not used yet-->
     <color name="warningColor">#AA1111</color>
 
-    <color name="parkingAvailable">#007000</color>
-    <color name="parkingNotAvailable">#AA0000</color>
 </resources>
