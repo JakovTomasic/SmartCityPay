@@ -14,7 +14,6 @@
 
     <color name="loadingColor">#2974ff</color>
 
-    <!--TODO: this is not used yet-->
     <color name="warningColor">#AA1111</color>
 
 </resources>

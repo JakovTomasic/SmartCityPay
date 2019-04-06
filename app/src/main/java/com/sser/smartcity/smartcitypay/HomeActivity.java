@@ -1,7 +1,10 @@
 package com.sser.smartcity.smartcitypay;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AlertDialog;
@@ -107,6 +110,9 @@ public class HomeActivity extends AppCompatActivity {
 
         // Show current user balance
         updateBalanceLayout();
+
+        // Start periodically updating all data in the background
+        UpdateDataHandler.startUpdatingData();
     }
 
     // Set options menu
@@ -153,7 +159,10 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     // Refresh all data and layout with it
-    private void refreshWholeLayout() {
+    void refreshWholeLayout() {
+        // If there is no internet connection, show warning
+        checkNetworkConnection();
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -194,6 +203,29 @@ public class HomeActivity extends AppCompatActivity {
             swipeRefreshParentLayout.setEnabled(true);
             swipeRefreshParentLayout.setRefreshing(true);
         }
+    }
+
+    // Checks for internet connection and sets warning TextView accordingly
+    private void checkNetworkConnection() {
+        try {
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            final boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+            HomeActivity.this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        // Set error layout visibility
+                        View noInternetConnectionView = findViewById(R.id.no_internet_connection_TV);
+                        noInternetConnectionView.setVisibility(isConnected ? View.GONE : View.VISIBLE);
+                    } catch (Exception ignored) {}
+
+                }
+            });
+
+        } catch (Exception ignored) {}
     }
 
 

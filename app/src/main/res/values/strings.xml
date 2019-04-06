@@ -18,4 +18,6 @@
     <string name="payment_unsuccessful">Uplata nije izvršena</string>
     <string name="payment_example_hint">npr. 10.75</string>
 
+    <string name="no_internet_connection">Nema internetske veze</string>
+
 </resources>
